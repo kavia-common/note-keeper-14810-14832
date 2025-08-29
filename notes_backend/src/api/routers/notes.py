@@ -131,11 +131,14 @@ def patch_note(
     return updated
 
 
+from fastapi import Response
+
 @router.delete(
     "/{note_id}",
     summary="Delete a note",
     description="Delete a note by ID.",
     status_code=status.HTTP_204_NO_CONTENT,
+    response_model=None,  # Explicitly indicate no response body for 204
     responses={
         204: {"description": "Note deleted"},
         404: {"description": "Note not found"},
@@ -145,10 +148,15 @@ def patch_note(
 def delete_note(
     note_id: int = Path(..., ge=1, description="ID of the note to delete"),
     service: NotesService = Depends(get_service),
-) -> None:
-    """Delete a note. Returns 204 No Content on success."""
+) -> Response:
+    """
+    Delete a note. Returns 204 No Content on success.
+
+    FastAPI enforces that 204 responses must not include a response body.
+    We therefore return an empty Response with status_code=204.
+    """
     deleted = service.delete_note(note_id)
     if not deleted:
         raise HTTPException(status_code=404, detail="Note not found")
-    # Do not return any body for 204 No Content; simply exit the function.
-    return
+    # Return an explicit empty response to avoid any implicit body serialization.
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
