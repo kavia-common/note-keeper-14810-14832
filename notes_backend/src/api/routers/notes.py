@@ -150,4 +150,5 @@ def delete_note(
     deleted = service.delete_note(note_id)
     if not deleted:
         raise HTTPException(status_code=404, detail="Note not found")
-    return None
+    # Do not return any body for 204 No Content; simply exit the function.
+    return
